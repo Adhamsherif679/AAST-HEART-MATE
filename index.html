@@ -6,7 +6,6 @@
   <title>Login - AAST HEART MATE</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    /* Reset and base */
     * {
       box-sizing: border-box;
     }
@@ -19,7 +18,6 @@
       position: relative;
     }
 
-    /* Background image with blur */
     body::before {
       content: "";
       position: fixed;
@@ -28,12 +26,11 @@
       background-image: url('alamein.png');
       background-size: cover;
       background-position: center;
-      filter: blur(4px);
-      opacity: 0.85;
+      filter: blur(8px);
+      opacity: 0.75;
       z-index: -1;
     }
 
-    /* Container for login */
     .login-container {
       position: relative;
       background: rgba(255, 255, 255, 0.95);
@@ -50,7 +47,6 @@
       z-index: 1;
     }
 
-    /* Logo styling */
     .logo {
       max-width: 140px;
       margin: 0 auto 1.5rem;
@@ -84,6 +80,7 @@
       margin-bottom: 1rem;
       transition: border-color 0.3s ease;
     }
+
     select:focus, input[type="text"]:focus, input[type="password"]:focus {
       border-color: #d50000;
       box-shadow: 0 0 8px rgba(213, 0, 0, 0.4);
@@ -102,9 +99,19 @@
       transition: background-color 0.3s ease;
       box-shadow: 0 8px 20px rgba(213, 0, 0, 0.5);
     }
+
     button:hover {
       background-color: #b00000;
       box-shadow: 0 10px 25px rgba(176, 0, 0, 0.7);
+    }
+
+    .toggle-link {
+      color: #d50000;
+      font-weight: 600;
+      cursor: pointer;
+      display: block;
+      margin-top: 1rem;
+      text-decoration: underline;
     }
 
     .error-msg {
@@ -115,43 +122,133 @@
       display: none;
       text-align: center;
     }
+
+    /* Success Modal */
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .modal.hidden {
+      display: none;
+    }
+
+    .modal-backdrop {
+      position: absolute;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 1;
+      animation: fadeIn 0.3s ease forwards;
+    }
+
+    .modal-content {
+      position: relative;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 2rem 2.5rem;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      max-width: 400px;
+      z-index: 2;
+      transform: translateY(-20px);
+      opacity: 0;
+      animation: slideFadeIn 0.4s ease forwards;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .modal-content h3 {
+      color: #2e7d32;
+      font-size: 1.4rem;
+      margin: 0 0 0.5rem;
+    }
+
+    .modal-content p {
+      font-size: 1rem;
+      color: #333;
+      margin: 0;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      font-size: 1.3rem;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .close-btn:hover {
+      color: #d50000;
+    }
+
+    @keyframes slideFadeIn {
+      0% { opacity: 0; transform: translateY(-30px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
   </style>
 </head>
 <body>
-  <div class="login-container" role="main" aria-label="Login form">
+
+  <div class="login-container" role="main" aria-label="Login form" id="auth-container">
     <img src="logo.png" alt="AAST HEART MATE Logo" class="logo" />
-    <h2>AAST HEART MATE Login</h2>
+    <h2 id="form-title">AAST HEART MATE Login</h2>
 
-    <form id="loginForm" novalidate>
-      <label for="role">Select Role</label>
-      <select id="role" required>
-        <option value="" disabled selected>Select your role</option>
-        <option value="doctor">Doctor</option>
-        <option value="patient">Patient</option>
-      </select>
+    <label for="role">Select Role</label>
+    <select id="role" required>
+      <option value="" disabled selected>Select your role</option>
+      <option value="doctor">Doctor</option>
+      <option value="patient">Patient</option>
+    </select>
 
-      <label for="username">Username</label>
-      <input type="text" id="username" placeholder="Enter username" autocomplete="username" required />
+    <label for="username">Username</label>
+    <input type="text" id="username" placeholder="Enter username" autocomplete="username" required />
 
-      <label for="password">Password</label>
-      <input type="password" id="password" placeholder="Enter password" autocomplete="current-password" required />
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Enter password" autocomplete="current-password" required />
 
-      <div class="error-msg" id="error-msg" role="alert" aria-live="assertive"></div>
+    <div class="error-msg" id="error-msg" role="alert" aria-live="assertive"></div>
 
-      <button type="submit" aria-label="Login button">Login</button>
-    </form>
+    <button type="button" onclick="handleAuth()" aria-label="Login button" id="auth-button">Login</button>
+
+    <span class="toggle-link" onclick="toggleForm()" id="toggle-link">Don't have an account? Sign up</span>
+  </div>
+
+  <!-- Animated Success Modal -->
+  <div id="successModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeSuccessModal()">×</span>
+      <h3>✅ Account Created Successfully</h3>
+      <p>You will be redirected shortly. Welcome aboard!</p>
+    </div>
   </div>
 
   <script>
-    const form = document.getElementById('loginForm');
-    const errorMsg = document.getElementById('error-msg');
+    let isLogin = true;
 
-    form.addEventListener('submit', function(event) {
-      event.preventDefault();
+    function toggleForm() {
+      isLogin = !isLogin;
+      document.getElementById("form-title").textContent = isLogin ? "AAST HEART MATE Login" : "Create Account";
+      document.getElementById("auth-button").textContent = isLogin ? "Login" : "Sign Up";
+      document.getElementById("toggle-link").textContent = isLogin ? "Don't have an account? Sign up" : "Already have an account? Login";
+      document.getElementById("error-msg").style.display = "none";
+    }
 
+    function handleAuth() {
       const role = document.getElementById('role').value;
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
+      const errorMsg = document.getElementById('error-msg');
 
       if (!role || !username || !password) {
         errorMsg.textContent = 'Please fill in all fields and select a role.';
@@ -161,14 +258,30 @@
 
       errorMsg.style.display = 'none';
 
-      if (role === 'doctor') {
-        // TODO: validate username/password with doctor credentials
-        window.location.href = 'dashboarddoctor.html';
-      } else if (role === 'patient') {
-        // TODO: validate username/password with patient credentials
-        window.location.href = 'dashboardpatient.html';
+      if (isLogin) {
+        if (role === 'doctor') {
+          window.location.href = 'dashboarddoctor.html';
+        } else {
+          window.location.href = 'dashboardpatient.html';
+        }
+      } else {
+        showSuccessModal();
       }
-    });
+    }
+
+    function showSuccessModal() {
+      const modal = document.getElementById('successModal');
+      modal.classList.remove('hidden');
+
+      setTimeout(() => {
+        closeSuccessModal();
+        toggleForm();
+      }, 4000);
+    }
+
+    function closeSuccessModal() {
+      document.getElementById('successModal').classList.add('hidden');
+    }
   </script>
 </body>
 </html>
