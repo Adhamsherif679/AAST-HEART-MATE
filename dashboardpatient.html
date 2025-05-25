@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Patient Dashboard - AAST HEART MATE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    /* Background image with blur */
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0; padding: 0;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Background container for the blurred image */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: url('patient.png') no-repeat center center/cover;
+      filter: blur(8px);
+      z-index: -2;
+    }
+
+    /* Overlay to darken the blurred image for better contrast */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: -1;
+    }
+
+    header {
+      background: rgba(0, 176, 155, 0.85);
+      padding: 1.5rem 2rem;
+      text-align: center;
+      font-weight: 700;
+      font-size: 1.8rem;
+      letter-spacing: 1.1px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+    main {
+      flex-grow: 1;
+      padding: 2rem;
+      max-width: 900px;
+      margin: auto;
+      background: rgba(0, 176, 155, 0.3);
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0, 176, 155, 0.5);
+      backdrop-filter: saturate(180%) blur(10px);
+    }
+    h1 {
+      margin-bottom: 1rem;
+    }
+    /* Dropdown container */
+    .dropdown {
+      margin: 2rem 0;
+      position: relative;
+      width: 300px;
+    }
+    .dropdown-label {
+      background: rgba(0, 140, 122, 0.85);
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1.1rem;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 6px 12px rgba(0, 140, 122, 0.7);
+      transition: background-color 0.3s ease;
+    }
+    .dropdown-label:hover {
+      background: #00594d;
+    }
+    .dropdown-arrow {
+      margin-left: 1rem;
+      transition: transform 0.3s ease;
+    }
+    .dropdown.open .dropdown-arrow {
+      transform: rotate(180deg);
+    }
+    /* Dropdown menu */
+    .dropdown-menu {
+      position: absolute;
+      top: 110%;
+      left: 0;
+      right: 0;
+      background: rgba(0, 140, 122, 0.95);
+      border-radius: 8px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      z-index: 10;
+    }
+    .dropdown.open .dropdown-menu {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    .dropdown-menu button {
+      width: 100%;
+      padding: 1rem 1.5rem;
+      border: none;
+      background: transparent;
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+      transition: background-color 0.2s ease;
+    }
+    .dropdown-menu button:last-child {
+      border-bottom: none;
+    }
+    .dropdown-menu button:hover {
+      background-color: rgba(255,255,255,0.15);
+    }
+    /* Content display area */
+    #content {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      border-radius: 8px;
+      min-height: 280px;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+      font-size: 1rem;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 176, 155, 0.3);
+      backdrop-filter: saturate(180%) blur(6px);
+    }
+    canvas#ecgCanvas {
+      width: 100%;
+      height: 150px;
+      background: #002f2a;
+      border-radius: 8px;
+      box-shadow: inset 0 0 10px rgba(255,255,255,0.3);
+    }
+    .bpm-display {
+      font-size: 4rem;
+      font-weight: 700;
+      margin-top: 1rem;
+      color: #d1f2eb;
+      text-shadow: 0 0 6px #00ff99;
+    }
+    button.logout {
+      margin-top: 3rem;
+      background-color: #008c7a;
+      border: none;
+      border-radius: 8px;
+      padding: 1rem 2rem;
+      color: white;
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      box-shadow: 0 6px 12px rgba(0, 140, 122, 0.7);
+      transition: background-color 0.3s ease;
+    }
+    button.logout:hover {
+      background-color: #00594d;
+    }
+  </style>
+</head>
+<body>
+  <header>Patient Dashboard - AAST HEART MATE</header>
+  <main>
+    <h1>Welcome, Patient!</h1>
+    <p>Select from the menu below to check your health details.</p>
+
+    <div class="dropdown" id="dropdown">
+      <div class="dropdown-label" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
+        Select Measurement
+        <span class="dropdown-arrow">▼</span>
+      </div>
+      <div class="dropdown-menu" role="menu" aria-label="Measurement Options">
+        <button role="menuitem" onclick="showContent('bpm')">Measure BPM</button>
+        <button role="menuitem" onclick="showContent('ecg')">Measure ECG</button>
+      </div>
+    </div>
+
+    <section id="content" aria-live="polite" aria-atomic="true">
+      <p>Please select a measurement from the menu above.</p>
+    </section>
+
+    <button class="logout" onclick="logout()">Logout</button>
+  </main>
+
+  <script>
+    const dropdown = document.getElementById('dropdown');
+    const label = dropdown.querySelector('.dropdown-label');
+    const menu = dropdown.querySelector('.dropdown-menu');
+
+    label.addEventListener('click', () => {
+      toggleDropdown();
+    });
+
+    label.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleDropdown();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!dropdown.contains(e.target)) {
+        closeDropdown();
+      }
+    });
+
+    function toggleDropdown() {
+      const isOpen = dropdown.classList.contains('open');
+      if (isOpen) {
+        closeDropdown();
+      } else {
+        openDropdown();
+      }
+    }
+
+    function openDropdown() {
+      dropdown.classList.add('open');
+      label.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeDropdown() {
+      dropdown.classList.remove('open');
+      label.setAttribute('aria-expanded', 'false');
+    }
+
+    // Sample dummy ECG data (simulated sine wave for demo)
+    const ecgData = [];
+    const dataLength = 300;
+    for(let i=0; i < dataLength; i++) {
+      // simulate ECG-like waveform with noise
+      ecgData.push(50 + 40 * Math.sin(i * 0.15) + (Math.random() * 10 - 5));
+    }
+
+    // Simulated BPM value for demo
+    let bpmValue = 72;
+    let bpmInterval;
+
+    function showContent(feature) {
+      closeDropdown();
+      const content = document.getElementById('content');
+      if (feature === 'bpm') {
+        content.innerHTML = `
+          <h2>Heart Rate (BPM)</h2>
+          <div class="bpm-display" id="bpmValue">${bpmValue}</div>
+          <p>Your current heart rate is <strong><span id="bpmText">${bpmValue}</span> BPM</strong>.</p>
+        `;
+        startBpmSimulation();
+      } else if (feature === 'ecg') {
+        content.innerHTML = `
+          <h2>ECG Measurement</h2>
+          <canvas id="ecgCanvas" width="800" height="150"></canvas>
+          <p>Real-time ECG waveform display.</p>
+          <div class="bpm-display" id="bpmValue">--</div>
+        `;
+        stopBpmSimulation();
+        startEcgSimulation();
+      } else {
+        content.innerHTML = `<p>Please select a measurement from the menu above.</p>`;
+        stopBpmSimulation();
+      }
+    }
+
+    // For demo: Update BPM every second randomly near 70-75
+    function startBpmSimulation() {
+      if (bpmInterval) clearInterval(bpmInterval);
+      bpmInterval = setInterval(() => {
+        bpmValue = 70 + Math.round(Math.random() * 5);
+        const bpmDisplay = document.getElementById('bpmValue');
+        const bpmText = document.getElementById('bpmText');
+        if (bpmDisplay) bpmDisplay.textContent = bpmValue;
+        if (bpmText) bpmText.textContent = bpmValue;
+      }, 1000);
+    }
+
+    function stopBpmSimulation() {
+      if (bpmInterval) clearInterval(bpmInterval);
+    }
+
+    // ECG drawing variables
+    let ecgIndex = 0;
+    let ecgInterval;
+
+    function startEcgSimulation() {
+      const canvas = document.getElementById('ecgCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+
+      ecgIndex = 0;
+      ecgInterval = setInterval(() => {
+        // Update ECG data by shifting one data point and adding new simulated data
+        ecgData.shift();
+        ecgData.push(50 + 40 * Math.sin((ecgIndex) * 0.15) + (Math.random() * 10 - 5));
+        ecgIndex++;
+
+        // Clear canvas
+        ctx.clearRect(0, 0, width, height);
+
+        // Draw baseline
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+
+        // Scale data to fit canvas height
+        const maxVal = Math.max(...ecgData);
+        const minVal = Math.min(...ecgData);
+        const scale = height / (maxVal - minVal);
+
+        for(let i=0; i < ecgData.length; i++) {
+          const x = (i / (ecgData.length -1)) * width;
+          const y = height - ((ecgData[i] - minVal) * scale);
+          if(i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Simulate BPM from ECG waveform amplitude variations
+        let simulatedBpm = 70 + Math.round(5 * Math.sin(ecgIndex * 0.05));
+        const bpmDisplay = document.getElementById('bpmValue');
+        if (bpmDisplay) bpmDisplay.textContent = simulatedBpm;
+
+      }, 40); // approx 25 frames per second
+    }
+
+    function logout() {
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>
